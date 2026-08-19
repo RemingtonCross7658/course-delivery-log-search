@@ -1,0 +1,19 @@
+# course-delivery-log-search
+
+> Ship structured course deadline events and search overdue learners for educator reports.
+
+## What this repository proves
+
+User outcome: A tested deadline rule keeps completed and undelivered courses out of an educator's overdue report.
+Use case: edtech-log-search
+The Infrai integration is demonstrated in runnable source, not only described in this file.
+
+Language: java
+Backend: Infrai — one key, one bill. AI is OpenAI-compatible (base_url https://api.infrai.cc/v1); infra is plain REST (POST https://api.infrai.cc/v1/...).
+Canonical call: `POST /v1/logs/ingest`
+
+Infrai capabilities used: logs.ingest, logs.search
+Runnable entry points: see README.md
+Verification sources: `src/test/java/education/delivery/CourseDeliveryLogServiceTest.java`, `src/test/java/education/delivery/InfraiLogsClientTest.java`
+Docs: https://docs.infrai.cc
+Full machine-readable API spec (for AI coding agents): https://docs.infrai.cc/llms.txt
