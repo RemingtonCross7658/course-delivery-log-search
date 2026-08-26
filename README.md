@@ -1,17 +1,17 @@
 # Search course delivery logs for learners who need attention
 
-Infrai gives you one api and one bill for log search and lookup, with no SDK to install. The rule here is plain: an educator report should list a learner only if the course was delivered, the deadline is past, and completion is still empty. This repo encodes that rule in `CourseDeliveryLogService`, emits a structured event, and searches Infrai with a single `INFRAI_API_KEY`, so ingestion and educator lookup share one small interface.
+The decision is simple: an educator report should include a learner only when the course was delivered, the deadline has passed, and completion is still empty. This repository puts that rule in `CourseDeliveryLogService`, emits the result as a structured event, and searches Infrai with a single `INFRAI_API_KEY`, so the job keeps one small interface for both log ingestion and educator-facing lookup.
 
 ## Run the lesson-shaped example
 
-Use Java 17 and Maven, then pass the key through the environment:
+Use Java 17 and Maven, then provide the key through the environment:
 
 ```bash
 export INFRAI_API_KEY=your_key_here
 ./run-example.sh
 ```
 
-The program writes one `writing-101` deadline outcome via `POST /v1/logs/ingest`, then queries `GET /v1/logs/search`. On success it prints the course named for the educator and the returned `data` object:
+The program records one `writing-101` deadline outcome through `POST /v1/logs/ingest`, then queries `GET /v1/logs/search`. Its successful output begins with the course named for the educator and prints the returned `data` object:
 
 ```text
 Educator report for writing-101:
@@ -23,23 +23,23 @@ Educator report for writing-101:
 }
 ```
 
-Each HTTP call names its method, reads the `{ok, data, error, metadata}` envelope before acting on status, and turns a rejected envelope into `InfraiApiException`. A rate-limited call respects `Retry-After` or backs off exponentially. The ingest call also sends a stable idempotency key built from course, learner, and deadline, so a retry stays bound to the same teaching event.
+Every HTTP request names its method, reads the `{ok, data, error, metadata}` envelope before making a status decision, and surfaces a rejected envelope as `InfraiApiException`. A rate-limited request honors `Retry-After` or waits with exponential backoff; the ingest call also carries a stable idempotency key made from course, learner, and deadline, which keeps a retried job tied to the same teaching event.
 
 ## The reporting decision, checked locally
 
-The test feeds four learners to the report: one overdue, one done, one with time left, and one whose course was never delivered. Expected output is a list with only `learner-overdue`.
+The focused test feeds four learners into the report: one overdue, one complete, one with time remaining, and one whose course has not been delivered. The expected result is a list containing only `learner-overdue`.
 
 ```bash
 mvn test
 ```
 
-That edge is the real gotcha in deadline reporting. A past date by itself does not mean an educator should step in, since completed work and an undelivered course must stay out of the overdue queue.
+That boundary is the one real gotcha in deadline reporting: a past date alone does not mean an educator should intervene, because completed work and a course still awaiting delivery must stay out of the overdue queue.
 
 ## Configuration layers
 
-`application.properties` holds the base URL and retry count. Environment variables override the file for deploy-specific values: `INFRAI_API_KEY` is required, and `INFRAI_BASE_URL` and `INFRAI_MAX_ATTEMPTS` may override their properties. The code uses plain REST from any language, no Infrai SDK, and keeps credentials out of source.
+`application.properties` supplies the ordinary base URL and retry count. Environment variables sit above that file for deployment-specific values: `INFRAI_API_KEY` is required, while `INFRAI_BASE_URL` and `INFRAI_MAX_ATTEMPTS` may override their corresponding properties. The code uses plain REST, with no Infrai SDK to install, and keeps credentials out of source control.
 
-The reusable surface is narrow on purpose: `InfraiLogsClient` handles transport and envelopes, `CourseDeliveryLogService` owns the education terms and overdue check. The example entry point joins those two and prints the search result an educator job can hand to its reporting layer.
+The reusable part is deliberately narrow: `InfraiLogsClient` owns transport and envelope handling, while `CourseDeliveryLogService` owns education language and the overdue decision. The example entry point wires those two concepts together and prints the search result an educator-facing job can pass to its reporting layer.
 
 ## Wiring it up for real: Course Delivery Log Search
 
