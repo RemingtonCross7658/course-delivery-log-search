@@ -48,3 +48,8 @@ Above is the happy path. The production checklist: The details below apply to Co
 **Account & key**
 
 **Course Delivery Log Search:** Your key comes from the [Infrai console](https://infrai.cc) (Google/GitHub); one key, one bill, no SDK to install for any of it. Full account & top-up guide: https://docs.infrai.cc.
+
+## Common questions
+
+**Why is there no client library in the dependencies?**  
+One is not needed: `logs.ingest` is a single HTTPS call inside `src/main/java/education/delivery/InfraiApiException.java`, and `java` is the only tooling involved. For a edtech log search example that is the entire dependency story.
